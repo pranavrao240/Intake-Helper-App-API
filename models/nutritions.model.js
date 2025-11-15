@@ -118,6 +118,7 @@ const nutritionSchema = new mongoose.Schema({
   toJSON: {
     transform: function (doc, ret) {
       ret.id = ret._id.toString();  // Expose _id as id
+      
       // delete ret._id;
       delete ret.__v;
     }

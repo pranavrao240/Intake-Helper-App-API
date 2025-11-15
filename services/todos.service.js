@@ -63,6 +63,19 @@ async function getTodo(params, callback = null) {
     }
   }
 }
+
+async function resetTodos() {
+  try {
+    await Todos.deleteMany({});
+    return { success: true, message: "Todos reset successfully" };
+  } catch (error) {
+    console.error("Error resetting todos:", error);
+    throw error;
+  }
+}
+
+
+
 async function addTodoItem(params, callback) {
   try {
     const { userId, meals } = params;
@@ -86,36 +99,43 @@ async function addTodoItem(params, callback) {
       )
       .map((m) => ({
         nutritionId: m.nutritionId,
-        type: Array.isArray(m.type) ? m.type[0] : m.type,
-        time: Array.isArray(m.time) ? m.time[0] : m.time,
+        type: Array.isArray(m.type) ? m.type : [m.type],
+        time: Array.isArray(m.time) ? m.time : [m.time],
         day: Array.isArray(m.day) ? m.day : [m.day],
       }));
 
     console.log("✅ Valid meals after filter and cleanup:", validMeals);
 
     if (validMeals.length === 0) {
-      return callback(new Error("No valid meals with nutritionId/time/day"));
+      return callback(new Error("No valid meals with nutritionId/time/day/type"));
     }
 
     let todoDoc = await Todos.findOne({ userId });
 
+    // If no todo exists → create new one
     if (!todoDoc) {
       const newTodo = new Todos({ userId, meals: validMeals });
       const saved = await newTodo.save();
       return callback(null, saved);
     }
 
-    
-    todoDoc.meals = todoDoc.meals.filter((m) => m && m.nutritionId);
+    // Process each new meal
+    for (const newMeal of validMeals) {
+      // Check if a meal with the same nutritionId, type, time, and day exists
+      const existingMealIndex = todoDoc.meals.findIndex(m => 
+        m.nutritionId.toString() === newMeal.nutritionId.toString() &&
+        JSON.stringify(m.type.sort()) === JSON.stringify(newMeal.type.sort()) &&
+        JSON.stringify(m.time.sort()) === JSON.stringify(newMeal.time.sort()) &&
+        JSON.stringify(m.day.sort()) === JSON.stringify(newMeal.day.sort())
+      );
 
-    const existingIds = todoDoc.meals.map((m) => m.nutritionId.toString());
-
-    validMeals.forEach((meal) => {
-      const idStr = meal.nutritionId.toString();
-      if (!existingIds.includes(idStr)) {
-        todoDoc.meals.push(meal);
+      if (existingMealIndex === -1) {
+        // If no exact match found, add the new meal
+        todoDoc.meals.push(newMeal);
+      } else {
+        console.log(`⚠️ Exact duplicate meal found, skipping:`, newMeal);
       }
-    });
+    }
 
     const updated = await todoDoc.save();
     return callback(null, updated);
@@ -124,6 +144,8 @@ async function addTodoItem(params, callback) {
     return callback(error);
   }
 }
+
+
 
 async function removeTodoItem(params, callback) {
   try {
@@ -170,9 +192,71 @@ async function removeTodoItem(params, callback) {
   }
 }
 
+// Add this after the existing functions in todos.service.js
+
+async function updateMeal(params, callback) {
+  try {
+    const { userId, mealId, updates } = params;
+
+    if (!userId || !mealId || !updates) {
+      return callback(new Error("Missing required parameters: userId, mealId, or updates"));
+    }
+
+    const updateObj = {};
+    if (updates.type) updateObj["meals.$.type"] = Array.isArray(updates.type) ? updates.type : [updates.type];
+    if (updates.time) updateObj["meals.$.time"] = Array.isArray(updates.time) ? updates.time : [updates.time];
+    if (updates.day) updateObj["meals.$.day"] = Array.isArray(updates.day) ? updates.day : [updates.day];
+
+    const result = await Todos.updateOne(
+      { userId, "meals._id": mealId },
+      { $set: updateObj }
+    );
+
+    if (result.matchedCount === 0) {
+      return callback(new Error("Meal not found"));
+    }
+
+    return callback(null, { success: true, message: "Meal updated successfully" });
+  } catch (error) {
+    console.error("❌ Error in updateMeal:", error);
+    return callback(error);
+  }
+}
+
+async function deleteMeal(params, callback) {
+  try {
+    const { userId, mealId } = params;
+
+    if (!userId || !mealId) {
+      return callback(new Error("Missing userId or mealId"));
+    }
+
+    const result = await Todos.updateOne(
+      { userId },
+      { $pull: { meals: { _id: mealId } } }
+    );
+
+    if (result.matchedCount === 0) {
+      return callback(new Error("User not found"));
+    }
+
+    if (result.modifiedCount === 0) {
+      return callback(new Error("Meal not found or already deleted"));
+    }
+
+    return callback(null, { success: true, message: "Meal deleted successfully" });
+  } catch (error) {
+    console.error("❌ Error in deleteMeal:", error);
+    return callback(error);
+  }
+}
+
 
 module.exports = {
   addTodoItem,
   removeTodoItem,
-  getTodo
+  getTodo,
+  updateMeal,
+  deleteMeal,
+  resetTodos
 };

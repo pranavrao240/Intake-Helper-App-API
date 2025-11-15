@@ -16,7 +16,7 @@ mongoose.connect('mongodb://localhost:27017/nutrition-db', {
   useUnifiedTopology: true,
 })
 .then(() => {
-  console.log('✅ MongoDB connected');
+  console.log('✅ MongoDB connected');~
   // Start server after DB connection is ready
   app.listen(PORT, () => {
     console.log(`🚀 Server running at http://localhost:${PORT}`);

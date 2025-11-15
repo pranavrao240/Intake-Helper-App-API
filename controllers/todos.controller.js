@@ -19,26 +19,49 @@ exports.findAll = (req, res, next) => {
 
 
 exports.create = (req, res, next) => {
-  const { meals } = req.body;
-  const userId = req.user.userId;
+  try {
+    const { meals } = req.body;
+    const userId = req.user?.userId; // safer optional chaining
 
-  console.log("📦 Incoming request:", req.body);
+    console.log("📦 Incoming request:", req.body);
 
-  if (!meals || !Array.isArray(meals)) {
-    return res.status(400).json({ message: "Missing or invalid meals in request body" });
-  }
+    // Validate request
+    if (!meals || !Array.isArray(meals) || meals.length === 0) {
+      return res.status(400).json({
+        message: "Invalid or missing 'meals' array in request body",
+      });
+    }
 
-  const model = { userId, meals };
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized: Missing userId" });
+    }
 
-  todoService.addTodoItem(model, (err, result) => {
-    if (err) return next(err);
+    // Prepare model for DB
+    const model = { userId, meals };
 
-    res.status(200).json({
-      message: "success",
-      data: result
+    // Pass to service layer
+    todoService.addTodoItem(model, (err, result) => {
+      if (err) return next(err);
+
+      res.status(200).json({
+        message: "Todo created successfully",
+        data: result,
+      });
     });
-  });
+  } catch (error) {
+    next(error);
+  }
 };
+
+exports.resetTodos = async (req, res, next) => {
+  try {
+    const result = await todoService.resetTodos();
+    res.status(200).json({ message: "Todos reset successfully", data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 exports.delete = (req, res, next) => {
   const mealId = req.body.mealId;

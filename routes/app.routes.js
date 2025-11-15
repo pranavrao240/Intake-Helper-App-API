@@ -80,6 +80,8 @@ router.post("/register", userController.register);
 router.post("/todos", authenticationToken, todoController.create);
 router.get("/todos", authenticationToken, todoController.findAll);
 router.delete("/todos", authenticationToken, todoController.delete);
+router.get('/reset-todos', authenticationToken, todoController.resetTodos);
+
 
 
 module.exports = router;
