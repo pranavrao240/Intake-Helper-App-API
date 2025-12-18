@@ -31,24 +31,49 @@ async function login({ email, password }, callback) {
 
 // Register function
 async function register(params, callback) {
-    if (!params.email) {
-        return callback({ message: "Email is required" });
+    // Validate required fields
+    const requiredFields = ['fullName', 'email', 'password'];
+    const missingFields = requiredFields.filter(field => !params[field]);
+    
+    if (missingFields.length > 0) {
+        return callback({ 
+            message: `Missing required fields: ${missingFields.join(', ')}` 
+        });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(params.email)) {
+        return callback({ message: "Invalid email format" });
     }
 
     try {
-        const isUserExist = await User.findOne({ email: params.email });
+        // Check if user already exists
+        const isUserExist = await User.findOne({ email: params.email.toLowerCase().trim() });
         if (isUserExist) {
             return callback({ message: "Email is already registered" });
         }
 
+        // Hash password
         const salt = bcrypt.genSaltSync(10);
         params.password = bcrypt.hashSync(params.password, salt);
+        params.email = params.email.trim();
 
-        const userSchema = new User(params);
-        const response = await userSchema.save();
-        return callback(null, response);
+        // Create and save user
+        const user = new User(params);
+        const savedUser = await user.save();
+        
+        // Remove password from response
+        const userResponse = savedUser.toObject();
+        delete userResponse.password;
+        
+        return callback(null, userResponse);
     } catch (error) {
-        return callback(error);
+        console.error('Registration error:', error);
+        return callback({ 
+            message: "Registration failed",
+            error: error.message 
+        });
     }
 }
 

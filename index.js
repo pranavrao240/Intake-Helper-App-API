@@ -11,10 +11,11 @@ app.use(cors());
 app.use(express.json());
 
 // ✅ MongoDB connection
-mongoose.connect('mongodb://localhost:27017/nutrition-db', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect('mongodb+srv://pranavrao210:HCBunmPYZZ2tkbJQ@nutrition.obx6bxv.mongodb.net/IntakeHelperDB')
+// mongoose.connect('mongodb://localhost:27017/nutrition-db', {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true,
+// })
 .then(() => {
   console.log('✅ MongoDB connected');~
   // Start server after DB connection is ready

@@ -1,82 +1,3 @@
-// // const mongoose = require('mongoose');
-
-// // const nutritionSchema = new mongoose.Schema({
-// //   nutritionId: {
-// //     type: Number,
-// //     unique: true,
-// //     required: true,
-// //   },
-// //   DishName: {
-// //     type: String,
-// //     unique: true,
-// //     required: true,
-// //   },
-// //   Calories: Number,
-// //   Protein: Number,
-// //   Fat: Number,
-// //   Carbohydrates: Number,
-// // }, {
-// //   toJSON: {
-// //     transform: function (doc, ret) {
-// //       ret.nutritionId = ret.nutritionId; // keep this
-// //       ret.id = ret._id.toString(); // optional if you want to expose _id as "id"
-// //       delete ret._id;
-// //       delete ret.__v;
-// //     },
-// //   },
-// // });
-
-
-// // const Nutrition = mongoose.model('Nutrition', nutritionSchema);
-
-// // module.exports = Nutrition;
-
-// const mongoose = require('mongoose');
-
-// const nutritionSchema = new mongoose.Schema({
-//   nutritionId: {
-//     type: String,
-//     unique: true,
-//     required: true,
-//   },
-//   selected:{
-//     type: String ,
-//     default:"Not Select",
-//     required :false
-
-//   },
-//   DishName: {
-//     type: String,
-//     unique: true,
-//     required: true,
-//   },
-//   Calories: Number,
-//   Protein: Number,
-//   Fat: Number,
-//   Carbohydrates: Number,
-//   FreeSugar: Number,
-//   Fibre: Number,
-//   Sodium: Number,
-//   Calcium: Number,
-//   Iron: Number,
-//   VitaminC: Number,
-//   Folate: Number,
-// }, {
-//   toJSON: {
-//     transform: function (doc, ret) {
-//                 if (ret._id) {
-//                     ret.nutritionId = ret._id; 
-//                     delete ret._id;
-//                 }
-//                 delete ret.__v;
-//             }
-//   },
-// });
-
-// console.log(new mongoose.Types.ObjectId().toString());
-// const Nutrition = mongoose.model('Nutrition', nutritionSchema);
-
-// module.exports = Nutrition;
 
 
 const mongoose = require('mongoose');
@@ -125,5 +46,25 @@ const nutritionSchema = new mongoose.Schema({
   }
 });
 
-const Nutrition = mongoose.model('Nutrition', nutritionSchema);
+const Nutrition = mongoose.model('Nutrition', nutritionSchema, 'nutritions');
+
 module.exports = Nutrition;
+
+
+// const nutritionSchema = new mongoose.Schema({
+//   dishName: { type: String, required: true, unique: true },
+//   calories: Number,
+//   carbohydrates: Number,
+//   protein: Number,
+//   fats: Number,
+//   freeSugar: Number,
+//   fibre: Number,
+//   sodium: Number,
+//   calcium: Number,
+//   iron: Number,
+//   vitaminC: Number,
+//   folate: Number,
+// });
+
+// const Nutrition = mongoose.model('Nutrition', nutritionSchema);
+// module.exports = Nutrition;
