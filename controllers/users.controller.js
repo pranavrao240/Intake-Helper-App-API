@@ -31,6 +31,109 @@ exports.register = (req, res, next) => {
     });
 }
 
+exports.getProfile = (req, res, next) => {
+    try {
+        console.log('Request user:', req.user); // Debug log
+        
+        // Get user ID from the authenticated request
+        const userId = req.user?.userId;
+        
+        if (!userId) {
+            console.error('No user ID found in request:', {
+                user: req.user,
+                headers: req.headers
+            });
+            return res.status(400).json({
+                success: false,
+                message: "User authentication failed: No user ID found"
+            });
+        }
+
+        userServices.getProfile(userId, (error, results) => {
+            if (error) {
+                console.error('Profile Error:', error);
+                return res.status(500).json({
+                    success: false,
+                    message: "Error retrieving user profile",
+                    error: process.env.NODE_ENV === 'development' ? error.message : undefined
+                });
+            }
+            
+            if (!results) {
+                return res.status(404).json({
+                    success: false,
+                    message: "User not found"
+                });
+            }
+            
+            res.status(200).json({ 
+                success: true,
+                message: "Profile retrieved successfully",
+                data: results 
+            });
+        });
+    } catch (error) {
+        console.error('Unexpected Error in getProfile:', error);
+        res.status(500).json({
+            success: false,
+            message: "An unexpected error occurred",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};
+
+// In your auth.js middleware
+const jwt = require('jsonwebtoken');
+
+exports.verifyToken = (req, res, next) => {
+    try {
+        // Get token from header
+        const authHeader = req.headers.authorization;
+        
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({
+                success: false,
+                message: "No token provided or invalid format. Use 'Bearer <token>'"
+            });
+        }
+
+        const token = authHeader.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: "No token provided"
+            });
+        }
+
+        // Verify token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // Make sure the token has the user ID
+        if (!decoded._id) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid token: missing user ID"
+            });
+        }
+
+        // Attach user to request
+        req.user = {
+            _id: decoded._id,
+            email: decoded.email
+        };
+        
+        console.log('Authenticated user:', req.user); // Debug log
+        next();
+    } catch (error) {
+        console.error('Auth Error:', error);
+        return res.status(401).json({
+            success: false,
+            message: "Invalid or expired token",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};
+
 
 
 

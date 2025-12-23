@@ -4,11 +4,29 @@ const User = require('../models/user.model'); // Adjust the path if necessary
 const bcrypt = require('bcryptjs');
 const auth = require('../middleware/auth');
 
+async function updateProfile({email,password},callback){
+    try{
+        
+    }catch{}
+}
+async function getProfile(userId, callback) {
+    try {
+        const user = await User.findById(userId).select('-password'); // Exclude password from results
+        if (user) {
+            return callback(null, user);
+        } else {
+            return callback({ message: "User not found" });
+        }
+    } catch (error) {
+        return callback(error);
+    }
+}
 
 // Login function
 async function login({ email, password }, callback) {
     try {
         const userModel = await User.findOne({ email });
+        
         if (userModel) {
             if (bcrypt.compareSync(password, userModel.password)) {
                 const userPayload = {
@@ -80,4 +98,5 @@ async function register(params, callback) {
 module.exports = {
     login,
     register,
+    getProfile
 };

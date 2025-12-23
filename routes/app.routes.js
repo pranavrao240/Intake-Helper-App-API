@@ -52,6 +52,8 @@ router.get('/nutrition/:_id', nutritionController.findOne);
 
 router.post("/login", userController.login);
 router.post("/register", userController.register);
+router.get("/profile", authenticationToken, userController.getProfile);
+
 
 
 router.post("/todos", authenticationToken, todoController.create);
