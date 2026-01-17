@@ -50,21 +50,3 @@ const Nutrition = mongoose.model('Nutrition', nutritionSchema, 'nutritions');
 
 module.exports = Nutrition;
 
-
-// const nutritionSchema = new mongoose.Schema({
-//   dishName: { type: String, required: true, unique: true },
-//   calories: Number,
-//   carbohydrates: Number,
-//   protein: Number,
-//   fats: Number,
-//   freeSugar: Number,
-//   fibre: Number,
-//   sodium: Number,
-//   calcium: Number,
-//   iron: Number,
-//   vitaminC: Number,
-//   folate: Number,
-// });
-
-// const Nutrition = mongoose.model('Nutrition', nutritionSchema);
-// module.exports = Nutrition;

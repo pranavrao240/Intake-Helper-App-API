@@ -1,6 +1,6 @@
 const todoService = require("../services/todos.service");
 
-const Nutrition = require("../models/nutritions.model"); // adjust the path as needed
+const Nutrition = require("../models/nutritions.model"); 
 
 
 

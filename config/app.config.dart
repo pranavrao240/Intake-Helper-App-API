@@ -1,9 +1,5 @@
 class AppConfig {
-  // ✅ Base URL of your Node.js server
-  static const String baseUrl =
-      'http://localhost:3000'; // change for emulator or production
+  static const String baseUrl = 'http://localhost:3000';
 
-  // ✅ API Endpoints
-  static const String nutritionByDishName =
-      '/nutrition'; // will append /DishName
+  static const String nutritionByDishName = '/nutrition';
 }

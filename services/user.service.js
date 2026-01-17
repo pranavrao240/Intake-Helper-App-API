@@ -1,6 +1,6 @@
 
 
-const User = require('../models/user.model'); // Adjust the path if necessary
+const User = require('../models/user.model'); 
 const bcrypt = require('bcryptjs');
 const auth = require('../middleware/auth');
 
@@ -11,7 +11,7 @@ async function updateProfile({email,password},callback){
 }
 async function getProfile(userId, callback) {
     try {
-        const user = await User.findById(userId).select('-password'); // Exclude password from results
+        const user = await User.findById(userId).select('-password'); 
         if (user) {
             return callback(null, user);
         } else {

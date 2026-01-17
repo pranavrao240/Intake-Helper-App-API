@@ -48,6 +48,9 @@ router.get("/nutrition/import/csv", async (req, res) => {
 
 
 router.get('/nutrition/:_id', nutritionController.findOne); 
+router.post("/nutrition", authenticationToken, nutritionController.create);
+router.put('/nutrition/:id', authenticationToken, nutritionController.update);
+router.delete('/nutrition/:id', authenticationToken, nutritionController.delete);
 
 
 router.post("/login", userController.login);

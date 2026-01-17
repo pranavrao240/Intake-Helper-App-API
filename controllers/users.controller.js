@@ -5,7 +5,6 @@ const userServices = require('../services/user.service');
 exports.register = (req, res, next) => {
     userServices.register(req.body, (error, results) => {
         if (error) {
-            // If it's a known error (like email exists), return 400
             if (error.message && (error.message.includes('already registered') || 
                                  error.message.includes('Missing required fields') ||
                                  error.message.includes('Invalid email format'))) {
@@ -14,7 +13,6 @@ exports.register = (req, res, next) => {
                     message: error.message
                 });
             }
-            // For other errors, pass to error handler with 500 status
             return res.status(500).json({
                 success: false,
                 message: 'Registration failed',
@@ -22,7 +20,6 @@ exports.register = (req, res, next) => {
             });
         }
 
-        // Success response
         return res.status(201).json({
             success: true,
             message: 'User registered successfully',
@@ -33,9 +30,8 @@ exports.register = (req, res, next) => {
 
 exports.getProfile = (req, res, next) => {
     try {
-        console.log('Request user:', req.user); // Debug log
+        console.log('Request user:', req.user); 
         
-        // Get user ID from the authenticated request
         const userId = req.user?.userId;
         
         if (!userId) {
@@ -82,12 +78,10 @@ exports.getProfile = (req, res, next) => {
     }
 };
 
-// In your auth.js middleware
 const jwt = require('jsonwebtoken');
 
 exports.verifyToken = (req, res, next) => {
     try {
-        // Get token from header
         const authHeader = req.headers.authorization;
         
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -105,10 +99,8 @@ exports.verifyToken = (req, res, next) => {
             });
         }
 
-        // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
-        // Make sure the token has the user ID
         if (!decoded._id) {
             return res.status(401).json({
                 success: false,
@@ -116,13 +108,12 @@ exports.verifyToken = (req, res, next) => {
             });
         }
 
-        // Attach user to request
         req.user = {
             _id: decoded._id,
             email: decoded.email
         };
         
-        console.log('Authenticated user:', req.user); // Debug log
+        console.log('Authenticated user:', req.user); 
         next();
     } catch (error) {
         console.error('Auth Error:', error);
@@ -154,7 +145,6 @@ exports.login = (req, res, next) => {
             data:results
         })
     })
-    // const email = req.body.email;
 
 }
 exports.findOne = (req,res,next)=>{

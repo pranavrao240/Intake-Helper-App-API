@@ -24,7 +24,7 @@ function generateAccessToken(user) {
         email: user.email,
         
     };
-    return jwt.sign(payload, process.env.JWT_SECRET || TOKEN_KEY, { expiresIn: '24h' });
+    return jwt.sign(payload, process.env.JWT_SECRET || TOKEN_KEY, { expiresIn: '30d' });
 
 }
 module.exports = {
