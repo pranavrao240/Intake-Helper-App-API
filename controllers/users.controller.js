@@ -28,55 +28,43 @@ exports.register = (req, res, next) => {
     });
 }
 
-exports.getProfile = (req, res, next) => {
+const User = require('../models/user.model');
+
+
+exports.getProfile = async (req, res) => {
     try {
-        console.log('Request user:', req.user); 
+        const userId = req.user.userId;
+        console.log('Fetching user with ID:', userId);
         
-        const userId = req.user?.userId;
-        
-        if (!userId) {
-            console.error('No user ID found in request:', {
-                user: req.user,
-                headers: req.headers
-            });
-            return res.status(400).json({
+        const user = await User.findById(userId)
+            .select('-password -__v')
+            .lean();
+
+        if (!user) {
+            console.log('User not found with ID:', userId);
+            return res.status(404).json({
                 success: false,
-                message: "User authentication failed: No user ID found"
+                message: "User not found"
             });
         }
 
-        userServices.getProfile(userId, (error, results) => {
-            if (error) {
-                console.error('Profile Error:', error);
-                return res.status(500).json({
-                    success: false,
-                    message: "Error retrieving user profile",
-                    error: process.env.NODE_ENV === 'development' ? error.message : undefined
-                });
-            }
-            
-            if (!results) {
-                return res.status(404).json({
-                    success: false,
-                    message: "User not found"
-                });
-            }
-            
-            res.status(200).json({ 
-                success: true,
-                message: "Profile retrieved successfully",
-                data: results 
-            });
+        console.log('Found user:', user);
+        return res.status(200).json({
+            success: true,
+            data: user
         });
     } catch (error) {
-        console.error('Unexpected Error in getProfile:', error);
-        res.status(500).json({
+        console.error('Error in getProfile controller:', error);
+        return res.status(500).json({
             success: false,
-            message: "An unexpected error occurred",
+            message: 'Internal server error',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 };
+
+
+
 
 const jwt = require('jsonwebtoken');
 
@@ -162,3 +150,49 @@ exports.findOne = (req,res,next)=>{
         })
     });
 }
+
+exports.updateProfile = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const updateData = { ...req.body };
+
+        console.log('Updating profile for user ID:', userId);
+        console.log('Update data:', updateData);
+
+        // Validate required fields
+        if (!updateData || Object.keys(updateData).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "No data provided for update"
+            });
+        }
+
+      
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $set: updateData },
+            { new: true, runValidators: true }
+        ).select('-password -__v');
+
+        if (!updatedUser) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            data: updatedUser
+        });
+
+    } catch (error) {
+        console.error('Error in updateProfile controller:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};

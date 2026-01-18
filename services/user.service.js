@@ -4,21 +4,49 @@ const User = require('../models/user.model');
 const bcrypt = require('bcryptjs');
 const auth = require('../middleware/auth');
 
-async function updateProfile({email,password},callback){
-    try{
-        
-    }catch{}
+async function updateProfile(userId, profileData, callback) {
+    try {
+        const updateData = {};
+        Object.keys(profileData).forEach(key => {
+            if (profileData[key] !== undefined && profileData[key] !== null) {
+                updateData[`profile.${key}`] = profileData[key];
+            }
+        });
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $set: updateData },
+            { new: true, runValidators: true }
+        ).select('-password');
+        if (!updatedUser) {
+            return callback({ message: "User not found" });
+        }
+        return callback(null, updatedUser);
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        return callback({ 
+            message: "Error updating profile", 
+            error: error.message 
+        });
+    }
 }
 async function getProfile(userId, callback) {
     try {
+        console.log('Fetching user with ID:', userId); 
         const user = await User.findById(userId).select('-password'); 
-        if (user) {
-            return callback(null, user);
-        } else {
+        
+        if (!user) {
+            console.log('User not found with ID:', userId);
             return callback({ message: "User not found" });
         }
+
+        console.log('Found user:', user); 
+        return callback(null, user);
     } catch (error) {
-        return callback(error);
+        console.error('Error in getProfile service:', error); 
+        return callback({ 
+            message: "Error retrieving profile", 
+            error: error.message 
+        });
     }
 }
 
@@ -98,5 +126,6 @@ async function register(params, callback) {
 module.exports = {
     login,
     register,
-    getProfile
+    getProfile,
+    updateProfile
 };

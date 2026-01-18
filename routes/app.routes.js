@@ -56,6 +56,7 @@ router.delete('/nutrition/:id', authenticationToken, nutritionController.delete)
 router.post("/login", userController.login);
 router.post("/register", userController.register);
 router.get("/profile", authenticationToken, userController.getProfile);
+router.put('/profile', authenticationToken, userController.updateProfile);
 
 
 
