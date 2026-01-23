@@ -23,6 +23,10 @@ const nutritionSchema = new mongoose.Schema({
   Iron: Number,
   VitaminC: Number,
   Folate: Number,
+  QuantityRequired: {
+    type: String,
+    default: "NULL",
+  },
   type:{
     type:String,
     default:"NULL",

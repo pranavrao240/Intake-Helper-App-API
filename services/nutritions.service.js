@@ -81,7 +81,9 @@ const addNutritionData = async (nutritionData) => {
       day: nutritionData.day || [],
       Protein: nutritionData.Protein || 0,
       Calories: nutritionData.Calories || 0,
-      Carbohydrates : nutritionData.Carbohydrates || 0
+      Carbohydrates : nutritionData.Carbohydrates || 0,
+      QuantityRequired: nutritionData.QuantityRequired || "NULL",
+
     });
 
     const savedNutrition = await nutrition.save();
