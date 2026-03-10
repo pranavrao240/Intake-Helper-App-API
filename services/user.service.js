@@ -9,17 +9,21 @@ async function updateProfile(userId, profileData, callback) {
         const updateData = {};
         Object.keys(profileData).forEach(key => {
             if (profileData[key] !== undefined && profileData[key] !== null) {
-                updateData[`profile.${key}`] = profileData[key];
+                // All fields are at root level, so just assign directly
+                updateData[key] = profileData[key];
             }
         });
+        
         const updatedUser = await User.findByIdAndUpdate(
             userId,
             { $set: updateData },
             { new: true, runValidators: true }
         ).select('-password');
+        
         if (!updatedUser) {
             return callback({ message: "User not found" });
         }
+        
         return callback(null, updatedUser);
     } catch (error) {
         console.error('Error updating profile:', error);

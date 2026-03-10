@@ -62,6 +62,71 @@ exports.resetTodos = async (req, res, next) => {
   }
 };
 
+exports.getStatusTodos = async (req, res, next) => {
+  try {
+    const { status } = req.params;
+    const userId = req.user?.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized: Missing userId" });
+    }
+    
+    const model = { userId, status };
+    
+    // Use callback pattern
+    todoService.getStatusTodos(model, (error, result) => {
+      if (error) {
+        return res.status(500).json({ 
+          success: false,
+          message: "Failed to get todos by status", 
+          error: error.message 
+        });
+      }
+      
+      res.status(200).json({
+        success: true,
+        message: "Todos retrieved successfully", 
+        data: result
+      });
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.changeStatus = async (req, res, next) => {
+  try {
+    const { status, id } = req.params;  // Add id from params
+    const userId = req.user?.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized: Missing userId" });
+    }
+    
+    // Include the todo id in the model
+    const model = { userId, status, id };
+    
+    // Use callback pattern
+    todoService.changeTodoItemStatus(model, (error, result) => {
+      if (error) {
+        return res.status(500).json({ 
+          success: false,
+          message: "Failed to change status", 
+          error: error.message 
+        });
+      }
+      
+      res.status(200).json({ 
+        success: true,
+        message: "Status changed successfully", 
+        data: result 
+      });
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 exports.delete = (req, res, next) => {
   const mealId = req.body.mealId;

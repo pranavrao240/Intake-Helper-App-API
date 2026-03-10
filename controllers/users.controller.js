@@ -154,12 +154,15 @@ exports.findOne = (req,res,next)=>{
 exports.updateProfile = async (req, res) => {
     try {
         const userId = req.user.userId;
-        const updateData = { ...req.body };
+        const updateData = req.body;
 
-        console.log('Updating profile for user ID:', userId);
-        console.log('Update data:', updateData);
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "User not authenticated"
+            });
+        }
 
-        // Validate required fields
         if (!updateData || Object.keys(updateData).length === 0) {
             return res.status(400).json({
                 success: false,
@@ -167,32 +170,34 @@ exports.updateProfile = async (req, res) => {
             });
         }
 
-      
-        const updatedUser = await User.findByIdAndUpdate(
-            userId,
-            { $set: updateData },
-            { new: true, runValidators: true }
-        ).select('-password -__v');
-
-        if (!updatedUser) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
+        // Handle profileImage path
+        if (updateData.profileImage) {
+            // You can add validation here if needed
+            // For example, check if it's a valid URL or local path
+            console.log('Updating profileImage to:', updateData.profileImage);
         }
 
-        return res.status(200).json({
-            success: true,
-            message: "Profile updated successfully",
-            data: updatedUser
-        });
+        userServices.updateProfile(userId, updateData, (error, result) => {
+            if (error) {
+                return res.status(400).json({
+                    success: false,
+                    message: error.message || "Failed to update profile",
+                    error: error.error
+                });
+            }
 
+            return res.status(200).json({
+                success: true,
+                message: "Profile updated successfully",
+                data: result
+            });
+        });
     } catch (error) {
-        console.error('Error in updateProfile controller:', error);
+        console.error('Error in update profile controller:', error);
         return res.status(500).json({
             success: false,
             message: 'Internal server error',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            error: error.message
         });
     }
 };

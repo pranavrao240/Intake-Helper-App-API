@@ -2,6 +2,18 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const userSchema = new Schema({
+    profileImage:{
+        type:String,
+        required:false
+    },
+    bodyFat:{
+        type:Number,
+        required:false
+    },
+    gender:{
+        type:String,
+        required:false
+    },
     fullName: {
         type: String,
         required: true,

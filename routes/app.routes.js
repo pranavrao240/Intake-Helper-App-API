@@ -9,6 +9,7 @@ const userController = require('../controllers/users.controller');
 const { authenticationToken } = require("../middleware/auth");
 const todoController = require("../controllers/todos.controller");
 
+
 const Nutrition = require('../models/nutritions.model');
 
 router.get('/nutrition/import', async (req, res) => {
@@ -57,6 +58,8 @@ router.post("/login", userController.login);
 router.post("/register", userController.register);
 router.get("/profile", authenticationToken, userController.getProfile);
 router.put('/profile', authenticationToken, userController.updateProfile);
+ 
+// router.put('/profile/image', authenticationToken, userController.updateProfileWithImage);
 
 
 
@@ -64,6 +67,9 @@ router.post("/todos", authenticationToken, todoController.create);
 router.get("/todos", authenticationToken, todoController.findAll);
 router.delete("/todos", authenticationToken, todoController.delete);
 router.get('/reset-todos', authenticationToken, todoController.resetTodos);
+
+router.get('/status-todos/:status', authenticationToken, todoController.getStatusTodos);
+router.put('/change-status/:status/:id', authenticationToken, todoController.changeStatus);
 
 
 

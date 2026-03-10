@@ -12,7 +12,7 @@ async function getTodo(params, callback = null) {
     const todoDB = await Todos.findOne({ userId: params.userId }).populate({
       path: "meals.nutritionId",
       model: "Nutrition",
-      select: "DishName Calories Carbohydrates Protein Fats FreeSugar Fibre Sodium Calcium Iron "
+      select: "DishName Calories Carbohydrates Protein Fats FreeSugar Fibre Sodium Calcium Iron status"
     });
 
     if (!todoDB) {
@@ -36,6 +36,7 @@ async function getTodo(params, callback = null) {
             nutritionId: item.nutritionId._id,
             id: item.nutritionId._id,
             _id: item.nutritionId._id,
+            createdAt: item.createdAt,
             DishName: item.nutritionId.DishName,
             Calories: item.nutritionId.Calories,
             Carbohydrates: item.nutritionId.Carbohydrates,
@@ -48,8 +49,9 @@ async function getTodo(params, callback = null) {
             Iron: item.nutritionId.Iron,
             type: item.type || null,
             time: item.time || null,
-            day: item.day || []
-          }
+            day: item.day || [],
+          },
+          status: item.status || "active"
         }))
     };
 
@@ -102,6 +104,8 @@ async function addTodoItem(params, callback) {
         type: Array.isArray(m.type) ? m.type : [m.type],
         time: Array.isArray(m.time) ? m.time : [m.time],
         day: Array.isArray(m.day) ? m.day : [m.day],
+        status: m.status || "active", 
+        createdAt: new Date()
       }));
 
     console.log("✅ Valid meals after filter and cleanup:", validMeals);
@@ -141,6 +145,65 @@ async function addTodoItem(params, callback) {
     return callback(null, updated);
   } catch (error) {
     console.error("❌ Error in addTodoItem:", error);
+    return callback(error);
+  }
+}
+
+
+
+async function changeTodoItemStatus(params, callback) {
+  try {
+    // Changed from mealId to id to match controller
+    const { userId, id, status } = params;
+
+    if (!userId || !id || status === undefined) {
+      return callback(new Error("Invalid userId, id, or status"));
+    }
+
+    const todoDoc = await Todos.findOne({ userId });
+
+    if (!todoDoc || !Array.isArray(todoDoc.meals)) {
+      return callback(null, { success: false, message: "Todo list is empty" });
+    }
+
+    const index = todoDoc.meals.findIndex(
+      (item) => item.nutritionId?.toString() === id.toString()
+    );
+
+    if (index === -1) {
+      return callback(null, { success: false, message: "Meal not found" });
+    }
+
+    todoDoc.meals[index].status = status;
+    const updated = await todoDoc.save();
+    return callback(null, updated);
+  } catch (error) {
+    console.error("❌ Error in changeTodoItemStatus:", error);
+    return callback(error);
+  }
+}
+
+async function getStatusTodos(params, callback) {
+  try {
+    const { userId, status } = params;
+
+    if (!userId || status === undefined) {
+      return callback(new Error("Invalid userId or status"));
+    }
+
+    const todoDoc = await Todos.findOne({ userId });
+
+    if (!todoDoc || !Array.isArray(todoDoc.meals)) {
+      return callback(null, { success: false, message: "Todo list is empty" });
+    }
+
+    const filteredMeals = todoDoc.meals.filter(
+      (item) => item.status === status
+    );
+
+    return callback(null, filteredMeals);
+  } catch (error) {
+    console.error("❌ Error in getStatusTodos:", error);
     return callback(error);
   }
 }
@@ -255,6 +318,8 @@ async function deleteMeal(params, callback) {
 module.exports = {
   addTodoItem,
   removeTodoItem,
+  getStatusTodos,
+  changeTodoItemStatus,
   getTodo,
   updateMeal,
   deleteMeal,

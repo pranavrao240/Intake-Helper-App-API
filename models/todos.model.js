@@ -19,6 +19,14 @@ const todoSchema = new mongoose.Schema(
           ref: "Nutrition",
           required: true,
         },
+          status: {
+          type: String,
+          default: "active"   // 👈 default value
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now
+        },
         type: {
           type: [String],
           enum: ["Breakfast", "Lunch", "Dinner"],
