@@ -151,6 +151,8 @@ exports.findOne = (req,res,next)=>{
     });
 }
 
+
+
 exports.updateProfile = async (req, res) => {
     try {
         const userId = req.user.userId;

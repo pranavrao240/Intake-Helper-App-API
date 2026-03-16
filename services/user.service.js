@@ -6,37 +6,37 @@ const auth = require('../middleware/auth');
 
 async function updateProfile(userId, profileData, callback) {
     try {
-        const updateData = {};
-        Object.keys(profileData).forEach(key => {
-            if (profileData[key] !== undefined && profileData[key] !== null) {
-                // All fields are at root level, so just assign directly
-                updateData[key] = profileData[key];
-            }
-        });
+        console.log('Updating profile for user:', userId);
+        console.log('Profile data received:', profileData);
+        
+        const updateData = { ...profileData }; // This should include FCMToken
         
         const updatedUser = await User.findByIdAndUpdate(
             userId,
-            { $set: updateData },
+            updateData,
             { new: true, runValidators: true }
-        ).select('-password');
+        ).select('-password ');
         
         if (!updatedUser) {
             return callback({ message: "User not found" });
         }
         
+        console.log('Updated user:', updatedUser);
         return callback(null, updatedUser);
     } catch (error) {
-        console.error('Error updating profile:', error);
+        console.error('Error in updateProfile service:', error);
         return callback({ 
             message: "Error updating profile", 
             error: error.message 
         });
     }
 }
+
+
 async function getProfile(userId, callback) {
     try {
         console.log('Fetching user with ID:', userId); 
-        const user = await User.findById(userId).select('-password'); 
+        const user = await User.findById(userId).select('-password');
         
         if (!user) {
             console.log('User not found with ID:', userId);

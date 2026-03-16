@@ -19,6 +19,8 @@ async function importNutritionData(csvFilePath) {
       .on('data', (row) => {
         nutritionData.push({
           selected: "Not Selected",
+          isSaved: false,
+          DishImage: row['Dish Image'],
           DishName: row['Dish Name'],
           Calories: parseFloat(row['Calories (kcal)']),
           Carbohydrates: parseFloat(row['Carbohydrt']),
@@ -46,6 +48,8 @@ async function importNutritionData(csvFilePath) {
   });
 }
 
+
+
 const getNutritionById = async (nutritionId) => {
   console.log('Querying nutritionId (MongoDB _id):', nutritionId);
   try {
@@ -61,11 +65,33 @@ const getNutritionById = async (nutritionId) => {
 const getSelectedNutrition = async () => {
   return await Nutrition.find({ selected: "Select" });
 };
-
+const getSavedNutrition = async () => {
+    try {
+        console.log('Querying for saved nutrition items...');
+        
+        // Find all nutrition items where isSaved is true
+        const savedNutrition = await Nutrition.find({ isSaved: true });
+        
+        console.log('Found saved nutrition items:', savedNutrition.length); // Debug log
+        
+        if (!savedNutrition || savedNutrition.length === 0) {
+            console.log('No saved nutrition found'); // Debug log
+            return []; // Return empty array
+        }
+        
+        return savedNutrition; // Return the actual array
+    } catch (error) {
+        console.error('Error fetching saved nutrition:', error);
+        return []; // Return empty array on error
+    }
+};
 const addNutritionData = async (nutritionData) => {
   try {
     if (!nutritionData.DishName) {
       throw new Error('DishName is required');
+    }
+    if (!nutritionData.DishImage) {
+      throw new Error('DishImage is required');
     }
 
     const existingDish = await Nutrition.findOne({ DishName: nutritionData.DishName });
@@ -83,6 +109,7 @@ const addNutritionData = async (nutritionData) => {
       Calories: nutritionData.Calories || 0,
       Carbohydrates : nutritionData.Carbohydrates || 0,
       QuantityRequired: nutritionData.QuantityRequired || "NULL",
+      
 
     });
 
@@ -141,6 +168,35 @@ const updateNutritionData = async (id, updateData) => {
   }
 };
 
+const updateSavedMeal = async (id) => {
+  try {
+    // First find the current document
+    const nutrition = await Nutrition.findById(id);
+
+    if (!nutrition) {
+      throw new Error('Nutrition data not found');
+    }
+
+    // Toggle the boolean
+    const updatedNutrition = await Nutrition.findByIdAndUpdate(
+      id,
+      { $set: { isSaved: !nutrition.isSaved } },  // ✅ flips true→false / false→true
+      { new: true, runValidators: true }
+    );
+
+    return {
+      success: true,
+      data: updatedNutrition
+    };
+  } catch (error) {
+    console.error('Error updating nutrition data:', error.message);
+    return {
+      success: false,
+      message: error.message || 'Failed to update nutrition data'
+    };
+  }
+};
+
 // Delete nutrition data by ID
 const deleteNutritionData = async (id) => {
   try {
@@ -171,5 +227,7 @@ module.exports = {
   getSelectedNutrition,
   addNutritionData,
   updateNutritionData,
-  deleteNutritionData
+  updateSavedMeal,
+  deleteNutritionData,
+  getSavedNutrition
 };

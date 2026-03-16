@@ -12,7 +12,7 @@ async function getTodo(params, callback = null) {
     const todoDB = await Todos.findOne({ userId: params.userId }).populate({
       path: "meals.nutritionId",
       model: "Nutrition",
-      select: "DishName Calories Carbohydrates Protein Fats FreeSugar Fibre Sodium Calcium Iron status"
+      select: "DishName DishImage Calories Carbohydrates Protein Fats FreeSugar Fibre Sodium Calcium Iron status"
     });
 
     if (!todoDB) {
@@ -38,6 +38,7 @@ async function getTodo(params, callback = null) {
             _id: item.nutritionId._id,
             createdAt: item.createdAt,
             DishName: item.nutritionId.DishName,
+            DishImage: item.nutritionId.DishImage,
             Calories: item.nutritionId.Calories,
             Carbohydrates: item.nutritionId.Carbohydrates,
             Protein: item.nutritionId.Protein,

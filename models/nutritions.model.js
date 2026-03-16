@@ -12,6 +12,16 @@ const nutritionSchema = new mongoose.Schema({
     unique: true,
     required: true,
   },
+  DishImage: {
+    type: String,
+    required: true,
+    default:null
+
+  },
+  isSaved: {
+    type: Boolean,
+    default: false
+  },
   Calories: Number,
   Protein: Number,
   Fats: Number,

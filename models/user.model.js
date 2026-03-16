@@ -14,6 +14,11 @@ const userSchema = new Schema({
         type:String,
         required:false
     },
+    FCMToken:{
+        type:String,
+        required:false,
+        default:null
+    },
     fullName: {
         type: String,
         required: true,
@@ -39,6 +44,7 @@ const userSchema = new Schema({
         type:Number,
         required:false
     },
+   
 dateOfBirth: {
     type: String,  
     validate: {
@@ -55,6 +61,7 @@ dateOfBirth: {
         message: 'Please provide a valid date in dd/mm/yyyy format'
     }
 },
+
     stripeCustomerID: {
         type: String,
     }
