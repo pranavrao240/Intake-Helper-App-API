@@ -1,7 +1,9 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const { Schema } = mongoose;
 
 const userSchema = new Schema({
+
     profileImage:{
         type:String,
         required:false
@@ -44,6 +46,19 @@ const userSchema = new Schema({
         type:Number,
         required:false
     },
+
+emailVerificationToken: {
+    type: String,
+    default: null
+},
+emailVerified: {
+    type: Boolean,
+    default: false
+},
+emailVerificationExpires: {
+    type: Date,
+    default: null
+},
    
 dateOfBirth: {
     type: String,  
@@ -67,6 +82,40 @@ dateOfBirth: {
     }
 }, {
     timestamps: true,  
+});
+
+
+
+userSchema.pre('save', async function(next) {
+    if (!this.isModified('password')) return next();
+    
+    try {
+        const salt = await bcrypt.genSalt(12);
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+
+userSchema.set('toJSON', {
+    virtuals: true,
+    transform: function(doc, ret) {
+        delete ret._id;
+        delete ret.__v;
+        delete ret.password;
+        return ret;
+    }
+});
+
+userSchema.set('toObject', {
+    virtuals: true,
+    transform: function(doc, ret) {
+        delete ret._id;
+        delete ret.__v;
+        delete ret.password;
+        return ret;
+    }
 });
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);

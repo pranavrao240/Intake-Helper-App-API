@@ -3,13 +3,15 @@
 const User = require('../models/user.model'); 
 const bcrypt = require('bcryptjs');
 const auth = require('../middleware/auth');
+const { sendVerificationEmail } = require('./email.service');
+const crypto = require('crypto');
 
 async function updateProfile(userId, profileData, callback) {
     try {
         console.log('Updating profile for user:', userId);
         console.log('Profile data received:', profileData);
         
-        const updateData = { ...profileData }; // This should include FCMToken
+        const updateData = { ...profileData, }; 
         
         const updatedUser = await User.findByIdAndUpdate(
             userId,
@@ -54,7 +56,92 @@ async function getProfile(userId, callback) {
     }
 }
 
-// Login function
+async function deleteUser(userId, callback) {
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return callback({ message: "User not found" });
+        }
+
+       
+        await require('../models/notifications.model.js').deleteMany({ userId });
+        
+        await require('../models/todos.model.js').deleteMany({ userId });
+        
+        await require('../models/streak.model.js').deleteMany({ userId });
+        
+        await require('../models/nutritions.model.js').deleteMany({ userId });
+
+        await User.findByIdAndDelete(userId);
+
+        return callback(null, { 
+            success: true, 
+            message: "User account and all related data deleted successfully" 
+        });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        return callback({ 
+            message: "Error deleting user account", 
+            error: error.message 
+        });
+    }
+}
+
+function generateVerificationToken() {
+    return crypto.randomBytes(32).toString('hex');
+}
+async function sendEmailVerification(userId, email) {
+    try {
+        const verificationToken = generateVerificationToken();
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+        
+        const updatedUser = await User.findByIdAndUpdate(userId, {
+            emailVerificationToken: verificationToken,
+            emailVerificationExpires: expiresAt,
+            emailVerified: false
+        }, { new: true });
+        
+        const result = await sendVerificationEmail(email, verificationToken);
+        
+        return {
+            ...result,
+            user: {
+                emailVerificationToken: updatedUser.emailVerificationToken,
+                emailVerificationExpires: updatedUser.emailVerificationExpires,
+                emailVerified: updatedUser.emailVerified
+            }
+        };
+    } catch (error) {
+        throw new Error(`Failed to send email verification: ${error.message}`);
+    }
+}
+async function verifyEmail(token) {
+    try {
+        const user = await User.findOne({
+            emailVerificationToken: token,
+            emailVerificationExpires: { $gt: new Date() }
+        });
+        
+        if (!user) {
+            return { success: false, message: 'Invalid or expired verification token' };
+        }
+        
+        await User.findByIdAndUpdate(user._id, {
+            emailVerified: true,
+            emailVerificationToken: null,
+            emailVerificationExpires: null
+        });
+        
+        return { 
+            success: true, 
+            message: 'Email verified successfully',
+            email: user.email 
+        };
+    } catch (error) {
+        throw new Error(`Failed to verify email: ${error.message}`);
+    }
+}
+
 async function login({ email, password }, callback) {
     try {
         const userModel = await User.findOne({ email });
@@ -67,7 +154,7 @@ async function login({ email, password }, callback) {
                     fullName: userModel.fullName,
                 };
                 const token = auth.generateAccessToken(userPayload);
-                return callback(null, { ...userModel.toJSON(), token });
+                return callback(null, { ...userModel.toJSON(), token, userId: userModel.userId });
             } else {
                 return callback({ message: "Invalid Email/Password" });
             }
@@ -79,9 +166,7 @@ async function login({ email, password }, callback) {
     }
 }
 
-// Register function
 async function register(params, callback) {
-    // Validate required fields
     const requiredFields = ['fullName', 'email', 'password'];
     const missingFields = requiredFields.filter(field => !params[field]);
     
@@ -90,30 +175,24 @@ async function register(params, callback) {
             message: `Missing required fields: ${missingFields.join(', ')}` 
         });
     }
-
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(params.email)) {
         return callback({ message: "Invalid email format" });
     }
 
     try {
-        // Check if user already exists
         const isUserExist = await User.findOne({ email: params.email.toLowerCase().trim() });
         if (isUserExist) {
             return callback({ message: "Email is already registered" });
         }
 
-        // Hash password
         const salt = bcrypt.genSaltSync(10);
         params.password = bcrypt.hashSync(params.password, salt);
         params.email = params.email.trim();
 
-        // Create and save user
         const user = new User(params);
         const savedUser = await user.save();
         
-        // Remove password from response
         const userResponse = savedUser.toObject();
         delete userResponse.password;
         
@@ -131,5 +210,8 @@ module.exports = {
     login,
     register,
     getProfile,
-    updateProfile
+    updateProfile,
+    sendEmailVerification,
+    verifyEmail,
+    deleteUser,
 };

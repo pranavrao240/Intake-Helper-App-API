@@ -126,23 +126,28 @@ notificationSchema.statics.getUserNotifications = async function(userId, options
         const sort = {};
         sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
-        const notifications = await this.find(query)
-            .sort(sort)
-            .skip(skip)
-            .limit(limit)
-            .lean();
+         const notifications = await this.find(query)
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .lean({ virtuals: false });
 
-        const total = await this.countDocuments(query);
+    const mapped = notifications.map(({ _id, __v, ...rest }) => ({
+        id: _id,
+        ...rest,
+    }));
 
-        return {
-            notifications,
-            pagination: {
-                page,
-                limit,
-                total,
-                pages: Math.ceil(total / limit)
-            }
-        };
+    const total = await this.countDocuments(query);
+
+    return {
+        notifications: mapped,  
+        pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit)
+        }
+    };
     } catch (error) {
         throw new Error(`Failed to get notifications: ${error.message}`);
     }

@@ -15,7 +15,6 @@ const nutritionSchema = new mongoose.Schema({
   DishImage: {
     type: String,
     required: true,
-    default:null
 
   },
   isSaved: {
@@ -52,9 +51,7 @@ const nutritionSchema = new mongoose.Schema({
 }, {
   toJSON: {
     transform: function (doc, ret) {
-      ret.id = ret._id.toString();  // Expose _id as id
-      
-      // delete ret._id;
+      ret.id = ret._id.toString();  
       delete ret.__v;
     }
   }

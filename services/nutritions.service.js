@@ -12,43 +12,55 @@ const Nutrition = require('../models/nutritions.model.js');
 
 async function importNutritionData(csvFilePath) {
   const nutritionData = [];
-
+ 
   return new Promise((resolve, reject) => {
     fs.createReadStream(csvFilePath)
       .pipe(csv())
       .on('data', (row) => {
         nutritionData.push({
-          selected: "Not Selected",
-          isSaved: false,
-          DishImage: row['Dish Image'],
-          DishName: row['Dish Name'],
-          Calories: parseFloat(row['Calories (kcal)']),
-          Carbohydrates: parseFloat(row['Carbohydrt']),
-          Protein: parseFloat(row['Protein (g)']),
-          Fats: parseFloat(row['Fats (g)']),
-          FreeSugar: parseFloat(row['Free Sugar']),
-          Fibre: parseFloat(row['Fibre (g)']),
-          Sodium: parseFloat(row['Sodium (mg)']),
-          Calcium: parseFloat(row['Calcium (mg)']),
-          Iron: parseFloat(row['Iron (mg)']),
-          VitaminC: parseFloat(row['Vitamin C']),
-          Folate: parseFloat(row['Folate (Âµg)']),
+          _id: row['_id'],
+          selected: row['selected'] || "Not Selected",
+          isSaved: row['isSaved'] === 'true' || row['isSaved'] === true,
+          DishImage: row['DishImage'],
+          DishName: row['DishName'],
+          Calories: parseFloat(row['Calories']) || 0,
+          Protein: parseFloat(row['Protein']) || 0,
+          Carbohydrates: parseFloat(row['Carbohydrates']) || 0,
+          Fat: parseFloat(row['Fat']) || 0,
+          Fiber: parseFloat(row['Fiber']) || 0,
+          Sodium: parseFloat(row['Sodium']) || 0,
+          Iron: parseFloat(row['Iron']) || 0,
+          Calcium: parseFloat(row['Calcium']) || 0,
+          Sugar: parseFloat(row['Sugar']) || 0,
+          QuantityRequired: row['QuantityRequired'] || '',
+          nutritionId: row['nutritionId'] || null,
+          type: row['type'] || 'Breakfast',
+          time: row['time'] || 'Morning',
+          Fats: parseFloat(row['Fat']) || 0,
+          Carbohydrt: parseFloat(row['Carbohydrates']) || 0,
         });
       })
       .on('end', async () => {
         try {
-          await Nutrition.insertMany(nutritionData, { ordered: false });
-          console.log(`✅ Imported ${nutritionData.length} nutrition records.`);
-          resolve(nutritionData);
-        } catch (err) {
-          reject(err);
+          console.log(`Importing ${nutritionData.length} nutrition records...`);
+          
+          await Nutrition.deleteMany({});
+          
+          const insertedData = await Nutrition.insertMany(nutritionData);
+          console.log(`✅ Successfully imported ${insertedData.length} nutrition records`);
+          
+          resolve(insertedData);
+        } catch (error) {
+          console.error('Error inserting nutrition data:', error);
+          reject(error);
         }
       })
-      .on('error', reject);
+      .on('error', (error) => {
+        console.error('Error reading CSV:', error);
+        reject(error);
+      });
   });
 }
-
-
 
 const getNutritionById = async (nutritionId) => {
   console.log('Querying nutritionId (MongoDB _id):', nutritionId);
@@ -69,20 +81,19 @@ const getSavedNutrition = async () => {
     try {
         console.log('Querying for saved nutrition items...');
         
-        // Find all nutrition items where isSaved is true
         const savedNutrition = await Nutrition.find({ isSaved: true });
         
-        console.log('Found saved nutrition items:', savedNutrition.length); // Debug log
+        console.log('Found saved nutrition items:', savedNutrition.length);
         
         if (!savedNutrition || savedNutrition.length === 0) {
-            console.log('No saved nutrition found'); // Debug log
-            return []; // Return empty array
+            console.log('No saved nutrition found');
+            return [];
         }
         
-        return savedNutrition; // Return the actual array
+        return savedNutrition;
     } catch (error) {
         console.error('Error fetching saved nutrition:', error);
-        return []; // Return empty array on error
+        return [];
     }
 };
 const addNutritionData = async (nutritionData) => {
@@ -127,7 +138,6 @@ const addNutritionData = async (nutritionData) => {
   }
 };
 
-// Update nutrition data by ID
 const updateNutritionData = async (id, updateData) => {
   try {
     if (!updateData || Object.keys(updateData).length === 0) {
@@ -170,17 +180,15 @@ const updateNutritionData = async (id, updateData) => {
 
 const updateSavedMeal = async (id) => {
   try {
-    // First find the current document
     const nutrition = await Nutrition.findById(id);
 
     if (!nutrition) {
       throw new Error('Nutrition data not found');
     }
 
-    // Toggle the boolean
     const updatedNutrition = await Nutrition.findByIdAndUpdate(
       id,
-      { $set: { isSaved: !nutrition.isSaved } },  // ✅ flips true→false / false→true
+      { $set: { isSaved: !nutrition.isSaved } },
       { new: true, runValidators: true }
     );
 
@@ -197,7 +205,6 @@ const updateSavedMeal = async (id) => {
   }
 };
 
-// Delete nutrition data by ID
 const deleteNutritionData = async (id) => {
   try {
     const deletedNutrition = await Nutrition.findByIdAndDelete(id);
