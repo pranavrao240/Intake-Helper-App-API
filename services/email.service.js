@@ -1,14 +1,16 @@
 const nodemailer = require('nodemailer');
+require('dotenv').config();
+
 
 // Create transporter
 const createTransporter = () => {
     return nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: process.env.SMTP_PORT || 587,
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT,
         secure: false,
         auth: {
-            user: process.env.SMTP_USER || 'pranavrao210@gmail.com',
-            pass: process.env.SMTP_PASS || 'ouiq sjsn ovpl yezr' // TODO: store inside  env
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS 
         }
     });
 };
