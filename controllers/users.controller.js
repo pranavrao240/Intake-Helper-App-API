@@ -440,3 +440,26 @@ exports.updateProfile = async (req, res) => {
         });
     }
 };
+
+exports.updateLastActive = async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(req.user.id, {
+      lastActive: new Date()
+    });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.updateTaskCompleted = async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(req.user.id, {
+      lastTaskCompleted: new Date(),
+      lastActive: new Date()
+    });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

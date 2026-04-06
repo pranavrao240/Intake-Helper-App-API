@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const nutritionRoutes = require('./routes/app.routes'); // ✅ make sure file name matches
 const cors = require('cors');
+require('./services/notificationScheduler');
 
 const app = express();
 const PORT = 3000;

@@ -67,6 +67,11 @@ router.post('/notifications/streak', authenticationToken, notificationController
 router.post('/notifications/meal-reminder', authenticationToken, notificationController.createMealReminder);
 router.delete('/notifications/cleanup', authenticationToken, notificationController.deleteOldNotifications);
 
+// User activity tracking
+router.post('/user/update-activity', authenticationToken, userController.updateLastActive);
+router.post('/user/task-completed', authenticationToken, userController.updateTaskCompleted);
+
+
 router.get("/nutrition/saved", authenticationToken, nutritionController.findSaved);
 router.put("/nutrition/saved/:id", authenticationToken, nutritionController.updateSavedMeal);
 

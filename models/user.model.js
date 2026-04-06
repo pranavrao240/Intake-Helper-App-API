@@ -16,11 +16,7 @@ const userSchema = new Schema({
         type:String,
         required:false
     },
-    FCMToken:{
-        type:String,
-        required:false,
-        default:null
-    },
+    
     fullName: {
         type: String,
         required: true,
@@ -55,6 +51,7 @@ emailVerified: {
     type: Boolean,
     default: false
 },
+
 emailVerificationExpires: {
     type: Date,
     default: null
@@ -79,8 +76,23 @@ dateOfBirth: {
 
     stripeCustomerID: {
         type: String,
+    },
+    lastActive: {
+        type: Date,
+        default: Date.now
+    },
+    lastTaskCompleted: {
+        type: Date,
+        default: null
+    },
+    FCMToken: {  // Add lowercase version for consistency
+        type: String,
+        required: false,
+        default: null
     }
-}, {
+},
+
+{
     timestamps: true,  
 });
 
