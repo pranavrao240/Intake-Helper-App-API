@@ -140,6 +140,13 @@ exports.resetPassword = async (req, res) => {
                 message: 'Invalid or expired reset token'
             });
         }
+
+        if (!user.emailVerified) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please verify your email before resetting password'
+            });
+        }
         
         user.password = newPassword;
         user.emailVerificationToken = null;

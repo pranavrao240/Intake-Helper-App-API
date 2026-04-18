@@ -147,6 +147,9 @@ async function login({ email, password }, callback) {
         const userModel = await User.findOne({ email });
         
         if (userModel) {
+            if (!userModel.emailVerified) {
+                return callback({ message: "Please verify your email before logging in" });
+            }
             if (bcrypt.compareSync(password, userModel.password)) {
                 const userPayload = {
                     _id: userModel._id,

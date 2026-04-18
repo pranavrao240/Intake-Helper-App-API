@@ -10,6 +10,7 @@ const { authenticationToken } = require("../middleware/auth");
 const todoController = require("../controllers/todos.controller");
 const streakController = require("../controllers/streak.controller");
 const notificationController = require('../controllers/notifications.controller');
+const savedMealsController = require('../controllers/savedMeals.controller');
 const { importNutritionData } = require('../services/nutritions.service'); 
 const { resetPasswordEmail } = require('../controllers/users.controller');
 const User = require('../models/user.model');
@@ -72,8 +73,12 @@ router.post('/user/update-activity', authenticationToken, userController.updateL
 router.post('/user/task-completed', authenticationToken, userController.updateTaskCompleted);
 
 
-router.get("/nutrition/saved", authenticationToken, nutritionController.findSaved);
-router.put("/nutrition/saved/:id", authenticationToken, nutritionController.updateSavedMeal);
+router.post('/saved-meals', authenticationToken, savedMealsController.saveMeal);
+router.get('/saved-meals', authenticationToken, savedMealsController.getSavedMeals);
+router.get('/saved-meals/:id', authenticationToken, savedMealsController.getSavedMeal);
+router.put('/saved-meals/:id', authenticationToken, savedMealsController.updateSavedMeal);
+router.delete('/saved-meals/:id', authenticationToken, savedMealsController.unsaveMeal);
+router.get('/saved-meals/check/:nutritionId', authenticationToken, savedMealsController.checkIfMealSaved);
 
 router.get('/nutrition/:_id', nutritionController.findOne); 
 router.post("/nutrition", authenticationToken, nutritionController.create);
@@ -102,26 +107,275 @@ router.get('/verify-email', async (req, res) => {
         const result = await verifyEmail(token);
         
         if (result.success) {
+            return res.send(`
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Email Verified - Intake Helper</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            max-width: 600px;
+                            margin: 0 auto;
+                            padding: 40px 20px;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            min-height: 100vh;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                        .container {
+                            background: white;
+                            padding: 40px;
+                            border-radius: 15px;
+                            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                            text-align: center;
+                        }
+                        .success-icon {
+                            font-size: 60px;
+                            color: #28a745;
+                            margin-bottom: 20px;
+                        }
+                        h1 {
+                            color: #333;
+                            margin-bottom: 20px;
+                            font-size: 28px;
+                        }
+                        p {
+                            color: #666;
+                            margin-bottom: 30px;
+                            font-size: 16px;
+                            line-height: 1.5;
+                        }
+                        .app-button {
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white;
+                            padding: 15px 30px;
+                            text-decoration: none;
+                            border-radius: 8px;
+                            font-weight: bold;
+                            display: inline-block;
+                            margin: 10px;
+                            transition: transform 0.2s;
+                        }
+                        .app-button:hover {
+                            transform: translateY(-2px);
+                        }
+                        .email {
+                            color: #667eea;
+                            font-weight: bold;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="success-icon">Check!</div>
+                        <h1>Email Verified Successfully!</h1>
+                        <p>
+                            Your email <span class="email">${result.email}</span> has been successfully verified.<br>
+                            You can now log in to your Intake Helper app.
+                        </p>
+                        <a href="intakehelper://login" class="app-button">Open Intake Helper App</a>
+                        <p style="font-size: 14px; color: #999; margin-top: 30px;">
+                            If the app doesn't open, please open it manually and try logging in.
+                        </p>
+                    </div>
+                </body>
+                </html>
+            `);
+        } else {
+            return res.send(`
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Verification Failed - Intake Helper</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            max-width: 600px;
+                            margin: 0 auto;
+                            padding: 40px 20px;
+                            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+                            min-height: 100vh;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                        .container {
+                            background: white;
+                            padding: 40px;
+                            border-radius: 15px;
+                            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                            text-align: center;
+                        }
+                        .error-icon {
+                            font-size: 60px;
+                            color: #dc3545;
+                            margin-bottom: 20px;
+                        }
+                        h1 {
+                            color: #333;
+                            margin-bottom: 20px;
+                            font-size: 28px;
+                        }
+                        p {
+                            color: #666;
+                            margin-bottom: 30px;
+                            font-size: 16px;
+                            line-height: 1.5;
+                        }
+                        .app-button {
+                            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+                            color: white;
+                            padding: 15px 30px;
+                            text-decoration: none;
+                            border-radius: 8px;
+                            font-weight: bold;
+                            display: inline-block;
+                            margin: 10px;
+                            transition: transform 0.2s;
+                        }
+                        .app-button:hover {
+                            transform: translateY(-2px);
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="error-icon">X</div>
+                        <h1>Verification Failed</h1>
+                        <p>
+                            ${result.message}
+                        </p>
+                        <a href="intakehelper://login" class="app-button">Try Again in App</a>
+                        <p style="font-size: 14px; color: #999; margin-top: 30px;">
+                            Please check if the verification link has expired or contact support.
+                        </p>
+                    </div>
+                </body>
+                </html>
+            `);
+        }
+    } catch (error) {
+        return res.send(`
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Verification Error - Intake Helper</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        max-width: 600px;
+                        margin: 0 auto;
+                        padding: 40px 20px;
+                        background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+                        min-height: 100vh;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    .container {
+                        background: white;
+                        padding: 40px;
+                        border-radius: 15px;
+                        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                        text-align: center;
+                    }
+                    .warning-icon {
+                        font-size: 60px;
+                        color: #ffc107;
+                        margin-bottom: 20px;
+                    }
+                    h1 {
+                        color: #333;
+                        margin-bottom: 20px;
+                        font-size: 28px;
+                    }
+                    p {
+                        color: #666;
+                        margin-bottom: 30px;
+                        font-size: 16px;
+                        line-height: 1.5;
+                    }
+                    .app-button {
+                        background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+                        color: white;
+                        padding: 15px 30px;
+                        text-decoration: none;
+                        border-radius: 8px;
+                        font-weight: bold;
+                        display: inline-block;
+                        margin: 10px;
+                        transition: transform 0.2s;
+                    }
+                    .app-button:hover {
+                        transform: translateY(-2px);
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="warning-icon">!</div>
+                    <h1>Something Went Wrong</h1>
+                    <p>
+                        We encountered an error while verifying your email. Please try again later.
+                    </p>
+                    <a href="intakehelper://login" class="app-button">Open Intake Helper App</a>
+                    <p style="font-size: 14px; color: #999; margin-top: 30px;">
+                        If the problem persists, please contact our support team.
+                    </p>
+                </div>
+            </body>
+            </html>
+        `);
+    }
+});
+
+// Email verification endpoint for Flutter app deep link
+router.post('/verify-email-token', async (req, res) => {
+    try {
+        const { token } = req.body;
+        
+        if (!token) {
+            return res.status(400).json({
+                success: false,
+                message: 'Verification token is required'
+            });
+        }
+        
+        const { verifyEmail } = require('../services/user.service');
+        const result = await verifyEmail(token);
+        
+        if (result.success) {
             return res.status(200).json({
                 success: true,
-                message: result.message,
-                email: result.email
+                message: 'Email verified successfully',
+                email: result.email,
+                verified: true
             });
         } else {
             return res.status(400).json({
                 success: false,
-                message: result.message
+                message: result.message,
+                verified: false
             });
         }
     } catch (error) {
+        console.error('Email verification error:', error);
         return res.status(500).json({
             success: false,
             message: 'Email verification failed',
+            verified: false,
             error: error.message
         });
     }
 });
-
 
 router.get('/verify-reset-token', async (req, res) => {
     try {

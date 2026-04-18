@@ -17,10 +17,6 @@ const nutritionSchema = new mongoose.Schema({
     required: true,
 
   },
-  isSaved: {
-    type: Boolean,
-    default: false
-  },
   Calories: Number,
   Protein: Number,
   Fats: Number,
@@ -53,6 +49,7 @@ const nutritionSchema = new mongoose.Schema({
     transform: function (doc, ret) {
       ret.id = ret._id.toString();  
       delete ret.__v;
+      delete ret.isSaved; // Remove isSaved from JSON responses
     }
   }
 });

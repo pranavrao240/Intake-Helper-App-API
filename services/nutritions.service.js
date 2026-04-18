@@ -20,7 +20,6 @@ async function importNutritionData(csvFilePath) {
         nutritionData.push({
           _id: row['_id'],
           selected: row['selected'] || "Not Selected",
-          isSaved: row['isSaved'] === 'true' || row['isSaved'] === true,
           DishImage: row['DishImage'],
           DishName: row['DishName'],
           Calories: parseFloat(row['Calories']) || 0,
@@ -77,25 +76,7 @@ const getNutritionById = async (nutritionId) => {
 const getSelectedNutrition = async () => {
   return await Nutrition.find({ selected: "Select" });
 };
-const getSavedNutrition = async () => {
-    try {
-        console.log('Querying for saved nutrition items...');
-        
-        const savedNutrition = await Nutrition.find({ isSaved: true });
-        
-        console.log('Found saved nutrition items:', savedNutrition.length);
-        
-        if (!savedNutrition || savedNutrition.length === 0) {
-            console.log('No saved nutrition found');
-            return [];
-        }
-        
-        return savedNutrition;
-    } catch (error) {
-        console.error('Error fetching saved nutrition:', error);
-        return [];
-    }
-};
+
 const addNutritionData = async (nutritionData) => {
   try {
     if (!nutritionData.DishName) {
@@ -178,32 +159,7 @@ const updateNutritionData = async (id, updateData) => {
   }
 };
 
-const updateSavedMeal = async (id) => {
-  try {
-    const nutrition = await Nutrition.findById(id);
 
-    if (!nutrition) {
-      throw new Error('Nutrition data not found');
-    }
-
-    const updatedNutrition = await Nutrition.findByIdAndUpdate(
-      id,
-      { $set: { isSaved: !nutrition.isSaved } },
-      { new: true, runValidators: true }
-    );
-
-    return {
-      success: true,
-      data: updatedNutrition
-    };
-  } catch (error) {
-    console.error('Error updating nutrition data:', error.message);
-    return {
-      success: false,
-      message: error.message || 'Failed to update nutrition data'
-    };
-  }
-};
 
 const deleteNutritionData = async (id) => {
   try {
@@ -234,7 +190,5 @@ module.exports = {
   getSelectedNutrition,
   addNutritionData,
   updateNutritionData,
-  updateSavedMeal,
-  deleteNutritionData,
-  getSavedNutrition
+  deleteNutritionData
 };
