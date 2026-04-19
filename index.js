@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // ✅ MongoDB connection
-mongoose.connect('mongodb+srv://pranavrao210:HCBunmPYZZ2tkbJQ@nutrition.obx6bxv.mongodb.net/IntakeHelperDB')
+mongoose.connect(process.env.MONGODB_URL )
 // mongoose.connect('mongodb://localhost:27017/nutrition-db', {
 //   useNewUrlParser: true,
 //   useUnifiedTopology: true,

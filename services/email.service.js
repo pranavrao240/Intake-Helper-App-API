@@ -26,7 +26,7 @@ async function sendVerificationEmail(email, verificationToken) {
         const transporter = createTransporter();
         console.log('Transporter created');
         
-        const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/api/verify-email?token=${verificationToken}`;
+        const verificationUrl = `${process.env.FRONTEND_URL}/api/verify-email?token=${verificationToken}`;
         console.log('URL:', verificationUrl);
         
         const mailOptions = {
