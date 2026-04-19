@@ -11,12 +11,19 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-// ✅ MongoDB connection
-mongoose.connect(process.env.MONGODB_URL )
-// mongoose.connect('mongodb://localhost:27017/nutrition-db', {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// })
+// MongoDB connection
+const mongodbUrl = process.env.MONGODB_URL;
+
+if (!mongodbUrl) {
+  console.error('ERROR: MONGODB_URL environment variable is not set!');
+  console.error('Please set MONGODB_URL in your Vercel environment variables');
+  process.exit(1);
+}
+
+mongoose.connect(mongodbUrl, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
 .then(() => {
   console.log('✅ MongoDB connected');~
   // Start server after DB connection is ready
