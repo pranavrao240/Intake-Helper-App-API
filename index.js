@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB connection
-const mongodbUrl = process.env.MONGODB_URL;
+const mongodbUrl = process.env.MONGODB_URL || 'mongodb+srv://pranavrao210:HCBunmPYZZ2tkbJQ@nutrition.obx6bxv.mongodb.net/IntakeHelperDB';
 
 if (!mongodbUrl) {
   console.error('ERROR: MONGODB_URL environment variable is not set!');
