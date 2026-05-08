@@ -38,9 +38,9 @@ exports.findSelected = async (req, res) => {
 
 exports.getAll = async (req, res) => {
   try {
-    const { page = 1, limit = 20 } = req.query;
+    const { page = 1, limit = 20, search = '' } = req.query;
     
-    const result = await getAllNutrition(parseInt(page), parseInt(limit));
+    const result = await getAllNutrition(parseInt(page), parseInt(limit), search.trim());
     
     return res.status(200).json({
       success: true,

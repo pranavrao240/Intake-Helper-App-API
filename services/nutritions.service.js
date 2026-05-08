@@ -77,30 +77,35 @@ const getSelectedNutrition = async () => {
   return await Nutrition.find({ selected: "Select" });
 };
 
-const getAllNutrition = async (page = 1, limit = 20) => {
-  try {
-    const skip = (page - 1) * limit;
-    
-    const nutrition = await Nutrition.find()
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-    
-    const total = await Nutrition.countDocuments();
-    
-    return {
-      data: nutrition,
-      pagination: {
-        currentPage: page,
-        totalPages: Math.ceil(total / limit),
-        totalItems: total,
-        itemsPerPage: limit
-      }
+const getAllNutrition = async (page = 1, limit = 20, search = '') => {
+  const skip = (page - 1) * limit;
+  
+  let query = {};
+  if (search.trim()) {
+    query = {
+      $or: [
+        { DishName: { $regex: search, $options: 'i' } },
+        { type: { $regex: search, $options: 'i' } }
+      ]
     };
-  } catch (error) {
-    console.error('Error fetching nutrition data:', error.message);
-    throw error;
   }
+  
+  const nutrition = await Nutrition.find(query)
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 });
+  
+  const total = await Nutrition.countDocuments(query);
+  
+  return {
+    data: nutrition,
+    pagination: {
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalItems: total,
+      itemsPerPage: limit
+    }
+  };
 };
 
 const addNutritionData = async (nutritionData) => {
