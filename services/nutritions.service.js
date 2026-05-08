@@ -77,6 +77,32 @@ const getSelectedNutrition = async () => {
   return await Nutrition.find({ selected: "Select" });
 };
 
+const getAllNutrition = async (page = 1, limit = 20) => {
+  try {
+    const skip = (page - 1) * limit;
+    
+    const nutrition = await Nutrition.find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+    
+    const total = await Nutrition.countDocuments();
+    
+    return {
+      data: nutrition,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        itemsPerPage: limit
+      }
+    };
+  } catch (error) {
+    console.error('Error fetching nutrition data:', error.message);
+    throw error;
+  }
+};
+
 const addNutritionData = async (nutritionData) => {
   try {
     if (!nutritionData.DishName) {
@@ -188,6 +214,7 @@ module.exports = {
   importNutritionData,
   getNutritionById,
   getSelectedNutrition,
+  getAllNutrition,
   addNutritionData,
   updateNutritionData,
   deleteNutritionData

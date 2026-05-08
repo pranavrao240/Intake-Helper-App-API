@@ -1,8 +1,10 @@
 const { getNutritionById } = require('../services/nutritions.service');
-const { getSelectedNutrition} = require('../services/nutritions.service');
+const { getSelectedNutrition } = require('../services/nutritions.service');
+const { getAllNutrition } = require('../services/nutritions.service');
 const { addNutritionData } = require('../services/nutritions.service');
 const { deleteNutritionData } = require('../services/nutritions.service');
 const { updateNutritionData } = require('../services/nutritions.service');
+
 exports.findOne = async (req, res) => {
   const _id = req.params._id;
   console.log('Received _id:', _id);
@@ -34,8 +36,28 @@ exports.findSelected = async (req, res) => {
   }
 };
 
+exports.getAll = async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    
+    const result = await getAllNutrition(parseInt(page), parseInt(limit));
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Nutrition data retrieved successfully',
+      data: result.data,
+      pagination: result.pagination
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
 
-
+// Create nutrition data
 exports.create = async (req, res, next) => {
   try {
     const nutritionData = req.body;

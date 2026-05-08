@@ -80,6 +80,7 @@ router.put('/saved-meals/:id', authenticationToken, savedMealsController.updateS
 router.delete('/saved-meals/:id', authenticationToken, savedMealsController.unsaveMeal);
 router.get('/saved-meals/check/:nutritionId', authenticationToken, savedMealsController.checkIfMealSaved);
 
+router.get('/nutrition', nutritionController.getAll);
 router.get('/nutrition/:_id', nutritionController.findOne); 
 router.post("/nutrition", authenticationToken, nutritionController.create);
 router.put('/nutrition/:id', authenticationToken, nutritionController.update);
