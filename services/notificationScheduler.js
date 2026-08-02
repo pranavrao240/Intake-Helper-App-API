@@ -56,26 +56,13 @@ cron.schedule('0 20 * * *', async () => {
 
 
 
-  // Find users who haven't opened app OR completed a task in 24h
-
   const inactiveUsers = await User.find({
-
+    FCMToken: { $exists: true, $ne: null },
     $or: [
-
-      { FCMToken: { $exists: true, $ne: null } }
-
-    ],
-
-    $or: [
-
       { lastActive: { $lt: cutoff } },
-
       { lastTaskCompleted: { $lt: cutoff }, lastTaskCompleted: { $exists: true } },
-
       { lastTaskCompleted: { $exists: false }, lastActive: { $lt: cutoff } }
-
     ]
-
   });
 
 

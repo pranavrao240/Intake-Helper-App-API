@@ -119,7 +119,10 @@ const addNutritionData = async (nutritionData) => {
 
     const existingDish = await Nutrition.findOne({ DishName: nutritionData.DishName });
     if (existingDish) {
-      throw new Error('Dish with this name already exists');
+      return {
+        success: true,
+        data: existingDish
+      };
     }
 
     const nutrition = new Nutrition({

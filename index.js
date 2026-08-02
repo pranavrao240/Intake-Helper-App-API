@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const nutritionRoutes = require('./routes/app.routes'); // ✅ make sure file name matches
@@ -25,7 +26,7 @@ mongoose.connect(mongodbUrl, {
   useUnifiedTopology: true,
 })
 .then(() => {
-  console.log('✅ MongoDB connected');~
+  console.log('✅ MongoDB connected');
   // Start server after DB connection is ready
   app.listen(PORT, () => {
     console.log(`🚀 Server running at http://localhost:${PORT}`);

@@ -14,8 +14,7 @@ exports.register = async (req, res) => {
         console.log('Registration request received:', { fullName, email });
         
         const existingUser = await User.findOne({ 
-            email: email,
-            isActive: true
+            email: email.toLowerCase().trim()
         });
         console.log('Existing user check result:', existingUser);
         
@@ -30,7 +29,7 @@ exports.register = async (req, res) => {
         console.log('Creating new user...');
         const user = new User({
             fullName,
-            email,
+            email: email.toLowerCase().trim(),
             password,
             emailVerified: false
         });

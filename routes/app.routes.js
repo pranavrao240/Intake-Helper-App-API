@@ -11,6 +11,7 @@ const todoController = require("../controllers/todos.controller");
 const streakController = require("../controllers/streak.controller");
 const notificationController = require('../controllers/notifications.controller');
 const savedMealsController = require('../controllers/savedMeals.controller');
+const mealSuggestionHistoryController = require('../controllers/mealSuggestionHistory.controller');
 const { importNutritionData } = require('../services/nutritions.service'); 
 const { resetPasswordEmail } = require('../controllers/users.controller');
 const User = require('../models/user.model');
@@ -79,6 +80,13 @@ router.get('/saved-meals/:id', authenticationToken, savedMealsController.getSave
 router.put('/saved-meals/:id', authenticationToken, savedMealsController.updateSavedMeal);
 router.delete('/saved-meals/:id', authenticationToken, savedMealsController.unsaveMeal);
 router.get('/saved-meals/check/:nutritionId', authenticationToken, savedMealsController.checkIfMealSaved);
+
+// AI Meal Suggestion History routes
+router.post('/meal-suggestions/history', authenticationToken, mealSuggestionHistoryController.saveHistory);
+router.get('/meal-suggestions/history', authenticationToken, mealSuggestionHistoryController.getHistory);
+router.delete('/meal-suggestions/history/:id', authenticationToken, mealSuggestionHistoryController.deleteHistoryItem);
+router.delete('/meal-suggestions/history', authenticationToken, mealSuggestionHistoryController.clearHistory);
+
 
 router.get('/nutrition', nutritionController.getAll);
 router.get('/nutrition/:_id', nutritionController.findOne); 
