@@ -22,14 +22,54 @@ if (admin.apps.length === 0) {
   });
 }
 
-// Run every day at 9:30 PM
-cron.schedule('39 21 * * *', async () => {
+// Run every day at 8:00 PM
+cron.schedule('0 20 * * *', async () => {
   try {
     await checkAndNotifyInactiveUsers();
   } catch (err) {
     console.error('Cron check failed:', err.message);
   }
 });
+
+// Run every day at 8:00 AM
+cron.schedule('0 8 * * *', async () => {
+  try {
+    await sendMorningReminder();
+  } catch (err) {
+    console.error('Cron morning reminder failed:', err.message);
+  }
+});
+
+async function sendMorningReminder() {
+  console.log('Sending morning reminders to plan todos...');
+  try {
+    const activeUsers = await User.find({
+      FCMToken: { $exists: true, $ne: null }
+    });
+
+    console.log(`Found ${activeUsers.length} users with FCM tokens for morning reminders`);
+
+    const notifiedUsers = [];
+    for (const user of activeUsers) {
+      const token = user.FCMToken;
+      if (token) {
+        await sendNotification(token, {
+          title: "🌅 Plan your day!",
+          body: "Don't forget to add your todos for today's meals and stay on track!"
+        });
+        notifiedUsers.push({ email: user.email, fullName: user.fullName });
+      }
+    }
+    
+    return {
+      totalFound: activeUsers.length,
+      notified: notifiedUsers
+    };
+  } catch (err) {
+    console.error('Error during morning reminders dispatch:', err);
+    throw err;
+  }
+}
 
 async function checkAndNotifyInactiveUsers() {
   console.log('Checking inactive users...');
@@ -91,5 +131,6 @@ async function sendNotification(token, { title, body }) {
 
 module.exports = {
   checkAndNotifyInactiveUsers,
+  sendMorningReminder,
   sendNotification
 };

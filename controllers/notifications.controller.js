@@ -1,5 +1,5 @@
 const notificationService = require('../services/notifications.service.js');
-const { checkAndNotifyInactiveUsers } = require('../services/notificationScheduler.js');
+const { checkAndNotifyInactiveUsers, sendMorningReminder } = require('../services/notificationScheduler.js');
 
 /**
  * GET /api/notifications
@@ -343,6 +343,26 @@ const triggerInactiveCheck = async (req, res) => {
     }
 };
 
+/**
+ * GET /api/notifications/trigger-morning-check
+ * Trigger the morning reminder check manually
+ */
+const triggerMorningCheck = async (req, res) => {
+    try {
+        const results = await sendMorningReminder();
+        return res.status(200).json({
+            success: true,
+            message: 'Morning todo reminder check complete',
+            data: results
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to trigger morning check'
+        });
+    }
+};
+
 module.exports = {
     getNotifications,
     createNotification,
@@ -352,5 +372,6 @@ module.exports = {
     createStreakNotification,
     createMealReminder,
     deleteOldNotifications,
-    triggerInactiveCheck
+    triggerInactiveCheck,
+    triggerMorningCheck
 };
