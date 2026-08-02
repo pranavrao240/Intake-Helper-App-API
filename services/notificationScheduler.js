@@ -42,9 +42,9 @@ admin.initializeApp({
 
 
 
-// Run every day at 8 PM
+// Run every day at 9:30 PM
 
-cron.schedule('0 20 * * *', async () => {
+cron.schedule('30 21 * * *', async () => {
 
   console.log('Checking inactive users...');
 
