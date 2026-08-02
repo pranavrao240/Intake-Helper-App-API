@@ -10,7 +10,7 @@ const createTransporter = () => {
         secure: false,
         auth: {
             user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS 
+            pass: process.env.SMTP_PASS
         },
         tls: {
             rejectUnauthorized: false
@@ -24,14 +24,14 @@ async function sendVerificationEmail(email, verificationToken) {
     console.log('=== sendVerificationEmail START ===');
     console.log('Email:', email);
     console.log('Token:', verificationToken);
-    
+
     try {
         const transporter = createTransporter();
         console.log('Transporter created');
-        
+
         const verificationUrl = `${process.env.FRONTEND_URL}/api/verify-email?token=${verificationToken}`;
         console.log('URL:', verificationUrl);
-        
+
         const mailOptions = {
             from: `"Intake Helper" <${process.env.SMTP_USER}>`,
             to: email,
@@ -55,11 +55,11 @@ async function sendVerificationEmail(email, verificationToken) {
                 </div>
             `
         };
-        
+
         console.log('Sending email...');
         const info = await transporter.sendMail(mailOptions);
         console.log('✅ Email sent:', info.messageId);
-        
+
         return {
             success: true,
             messageId: info.messageId,
@@ -73,7 +73,7 @@ async function sendVerificationEmail(email, verificationToken) {
 async function sendWelcomeEmail(email, userName) {
     try {
         const transporter = createTransporter();
-        
+
         const mailOptions = {
             from: `"Intake Helper" <${process.env.SMTP_USER}>`,
             to: email,
@@ -104,7 +104,7 @@ async function sendWelcomeEmail(email, userName) {
 
         const info = await transporter.sendMail(mailOptions);
         console.log('Welcome email sent:', info.messageId);
-        
+
         return {
             success: true,
             messageId: info.messageId,
@@ -119,22 +119,22 @@ async function sendWelcomeEmail(email, userName) {
 async function sendPasswordResetEmail(email, resetToken) {
     try {
         const transporter = createTransporter();
-        
+
         const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/api/reset-password?token=${resetToken}`;
-        
-       
-const mailOptions = {
-    from: `"Intake Helper" <${process.env.SMTP_USER}>`,
-    to: email,
-    subject: 'Reset Your Password',
-    html: `
+
+
+        const mailOptions = {
+            from: `"Intake Helper" <${process.env.SMTP_USER}>`,
+            to: email,
+            subject: 'Reset Your Password',
+            html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 30px; border-radius: 10px; text-align: center;">
                 <h1 style="margin: 0; font-size: 24px;">🔒 Password Reset</h1>
                 <p style="margin: 20px 0; font-size: 16px;">You requested to reset your password.</p>
                 
                 <div style="margin: 30px 0;">
-                    <a href="http://localhost:3000/api/verify-reset-token?token=${resetToken}" 
+                    <a href="${process.env.FRONTEND_URL}/api/verify-reset-token?token=${resetToken}" 
                        style="background: white; color: #f093fb; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
                         Verify Reset Token
                     </a>
@@ -162,7 +162,7 @@ const mailOptions = {
 
         const info = await transporter.sendMail(mailOptions);
         console.log('Password reset email sent:', info.messageId);
-        
+
         return {
             success: true,
             messageId: info.messageId,
