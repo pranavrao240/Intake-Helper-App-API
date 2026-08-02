@@ -1,4 +1,5 @@
 const notificationService = require('../services/notifications.service.js');
+const { checkAndNotifyInactiveUsers } = require('../services/notificationScheduler.js');
 
 /**
  * GET /api/notifications
@@ -322,6 +323,26 @@ const deleteOldNotifications = async (req, res) => {
     }
 };
 
+/**
+ * GET /api/notifications/trigger-inactive-check
+ * Trigger the inactive user check manually
+ */
+const triggerInactiveCheck = async (req, res) => {
+    try {
+        const results = await checkAndNotifyInactiveUsers();
+        return res.status(200).json({
+            success: true,
+            message: 'Inactive user notification check complete',
+            data: results
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to trigger inactive check'
+        });
+    }
+};
+
 module.exports = {
     getNotifications,
     createNotification,
@@ -330,5 +351,6 @@ module.exports = {
     getUnreadCount,
     createStreakNotification,
     createMealReminder,
-    deleteOldNotifications
+    deleteOldNotifications,
+    triggerInactiveCheck
 };

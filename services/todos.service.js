@@ -90,26 +90,41 @@ async function addTodoItem(params, callback) {
 
     console.log("Incoming meals:", meals);
 
-    const validMeals = meals
-      .filter(
-        (m) =>
-          m &&
-          m.nutritionId &&
-          mongoose.Types.ObjectId.isValid(m.nutritionId) &&
-          m.time &&
-          (Array.isArray(m.day) ? m.day.length > 0 : !!m.day) &&
-          (Array.isArray(m.type) ? m.type.length > 0 : !!m.type)
-      )
-      .map((m) => ({
-        nutritionId: m.nutritionId,
-        type: Array.isArray(m.type) ? m.type : [m.type],
-        time: Array.isArray(m.time) ? m.time : [m.time],
-        day: Array.isArray(m.day) ? m.day : [m.day],
-        status: m.status || "active", 
-        createdAt: new Date()
-      }));
+    const validMeals = [];
+    for (const m of meals) {
+      if (
+        !m ||
+        !m.nutritionId ||
+        !mongoose.Types.ObjectId.isValid(m.nutritionId) ||
+        !m.time ||
+        !(Array.isArray(m.day) ? m.day.length > 0 : !!m.day) ||
+        !(Array.isArray(m.type) ? m.type.length > 0 : !!m.type)
+      ) {
+        continue;
+      }
 
-    console.log("✅ Valid meals after filter and cleanup:", validMeals);
+      const days = Array.isArray(m.day) ? m.day : [m.day];
+      const times = Array.isArray(m.time) ? m.time : [m.time];
+      const types = Array.isArray(m.type) ? m.type : [m.type];
+
+      for (const d of days) {
+        for (let i = 0; i < times.length; i++) {
+          const t = times[i];
+          const tp = types[i] || types[0] || "Breakfast";
+
+          validMeals.push({
+            nutritionId: m.nutritionId,
+            type: [tp],
+            time: [t],
+            day: [d],
+            status: m.status || "active",
+            createdAt: new Date()
+          });
+        }
+      }
+    }
+
+    console.log("✅ Valid meals after filter and splitting:", validMeals);
 
     if (validMeals.length === 0) {
       return callback(new Error("No valid meals with nutritionId/time/day/type"));
@@ -129,9 +144,9 @@ async function addTodoItem(params, callback) {
       // Check if a meal with the same nutritionId, type, time, and day exists
       const existingMealIndex = todoDoc.meals.findIndex(m => 
         m.nutritionId.toString() === newMeal.nutritionId.toString() &&
-        JSON.stringify(m.type.sort()) === JSON.stringify(newMeal.type.sort()) &&
-        JSON.stringify(m.time.sort()) === JSON.stringify(newMeal.time.sort()) &&
-        JSON.stringify(m.day.sort()) === JSON.stringify(newMeal.day.sort())
+        m.type.some(t => newMeal.type.includes(t)) &&
+        m.time.some(t => newMeal.time.includes(t)) &&
+        m.day.some(d => newMeal.day.includes(d))
       );
 
       if (existingMealIndex === -1) {
@@ -168,7 +183,7 @@ async function changeTodoItemStatus(params, callback) {
     }
 
     const index = todoDoc.meals.findIndex(
-      (item) => item.nutritionId?.toString() === id.toString()
+      (item) => item._id?.toString() === id.toString() || item.nutritionId?.toString() === id.toString()
     );
 
     if (index === -1) {
@@ -226,7 +241,7 @@ async function removeTodoItem(params, callback) {
     }
 
     const index = todoDoc.meals.findIndex(
-      (item) => item.nutritionId?.toString() === mealId.toString()
+      (item) => item._id?.toString() === mealId.toString() || item.nutritionId?.toString() === mealId.toString()
     );
 
     if (index === -1) {

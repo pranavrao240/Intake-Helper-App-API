@@ -68,6 +68,7 @@ router.get('/notifications/unread-count', authenticationToken, notificationContr
 router.post('/notifications/streak', authenticationToken, notificationController.createStreakNotification);
 router.post('/notifications/meal-reminder', authenticationToken, notificationController.createMealReminder);
 router.delete('/notifications/cleanup', authenticationToken, notificationController.deleteOldNotifications);
+router.get('/notifications/trigger-inactive-check', notificationController.triggerInactiveCheck);
 
 // User activity tracking
 router.post('/user/update-activity', authenticationToken, userController.updateLastActive);
